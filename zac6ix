@@ -32,9 +32,13 @@ CT="$(date +"%r")"
 DT="$(date +"%b-%d-%Y")"
 cecho B "" "            \e[7m\e[3mMenu" "                        \033[0;36m\e[3m|| Time : $CT"
 cecho C "" "            \e[3mHost System : $HOSTNAME" "          \033[0;36m\e[3m|| Date : $DT"
-echo
-cecho C "    b - " "Build ROM "
-echo
+echo -e $nocol
+cecho C "    R - " "Build ROM "
+echo -e $nocol
+cecho B "    Y - " "Build ROM [No Ninja] "
+echo -e $nocol
+cecho Y "    b - " "Build BOOT.IMG "
+echo -e $nocol
 cecho R "    x - " "Exit"
 echo
 }
@@ -48,7 +52,9 @@ do
   START
   read -p "           Enter option: " CHOICE
   case "$CHOICE" in
-			B|b ) BUILD;;
+			R|r ) BUILD;;
+			Y|y ) BUILD_NO_NINJA;;
+			B|b ) BOOT;;
 			X|x) EXIT;;
 				*) cecho R "" "     Invalid option"; sleep 0.3; continue;;
 	esac
@@ -71,24 +77,75 @@ chmod 755 ./device/tecno/w2/patches/apply-patches.sh
 echo
 cecho G ""  "          D.O.N.E !!!   "
 echo
-    ./prebuilts/sdk/tools/jack-admin kill-server
-    rm -rf ~/.jack*
+    #./prebuilts/sdk/tools/jack-admin kill-server
+    #rm -rf ~/.jack*
 # IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT!
 #
 # Replace the value in the first of "ANDROID_JACK_VM_ARGS" with half of your ram
 # (i.e.: if you have 8GB of ram, use "-Xmx4g")
 #
-    export ANDROID_JACK_VM_ARGS="-Xmx2g -XX:+TieredCompilation -Dfile.encoding=UTF-8"
-    export SERVER_NB_COMPILE=2
-    export ANDROID_JACK_VM_ARGS=$JACK_SERVER_VM_ARGUMENT
+    #export ANDROID_JACK_VM_ARGS="-Xmx8g -XX:+TieredCompilation -Dfile.encoding=UTF-8"
+    #export SERVER_NB_COMPILE=4
+    #export ANDROID_JACK_VM_ARGS=$JACK_SERVER_VM_ARGUMENT
 sleep 3.0;
-   ./prebuilts/sdk/tools/jack-admin install-server prebuilts/sdk/tools/jack-launcher.jar prebuilts/sdk/tools/jack-server-4.8.ALPHA.jar
-    ./prebuilts/sdk/tools/jack-admin start-server
+   #./prebuilts/sdk/tools/jack-admin install-server prebuilts/sdk/tools/jack-launcher.jar prebuilts/sdk/tools/jack-server-4.8.ALPHA.jar
+    #./prebuilts/sdk/tools/jack-admin start-server
 sleep 3.0;
-make clean
+#make clean
 sleep 1.0;
 clear
 brunch w2
+cecho G ""  "          D.O.N.E !!!   "
+echo
+echo
+read -p "Press enter key to continue . . ."
+echo
+START
+}
+
+#Build_rom_without_ninja 
+BUILD_NO_NINJA(){
+clear
+. build/env*
+sleep 3.0;
+lunch lineage_w2-userdebug
+sleep 3.0;
+# [ patch]
+echo
+cecho P ""  "       \e[7m==> Applying Patch ... "
+chmod 755 ./device/tecno/w2/patches/apply-patches.sh
+./device/tecno/w2/patches/apply-patches.sh
+echo
+cecho G ""  "          D.O.N.E !!!   "
+echo
+export USE_NINJA=false
+sleep 3.0;
+#make clean
+sleep 1.0;
+clear
+brunch w2
+cecho G ""  "          D.O.N.E !!!   "
+echo
+echo
+read -p "Press enter key to continue . . ."
+echo
+START
+}
+
+
+#Build_rom  
+BOOT(){
+clear
+. build/env*
+sleep 3.0;
+lunch lineage_w2-userdebug
+sleep 3.0;
+# [ ---] 
+echo
+cecho P ""  "       \e[7m==> Building BOOT.IMG Only ... "
+sleep 1.0;
+clear
+mka -j5 bootimage
 cecho G ""  "          D.O.N.E !!!   "
 echo
 echo
